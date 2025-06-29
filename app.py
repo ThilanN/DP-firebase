@@ -6,8 +6,9 @@ app = Flask(__name__)
 
 # Initialize Firebase for server-side
 cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred, {"databaseURL": "https://smart-parking-system-5376-default-rtdb.asia-southeast1.firebasedatabase.app",})
-ref = db.reference("parking")
+firebase_admin.initialize_app(cred, {"databaseURL": "https://smart-parking-system-5376-default-rtdb.asia-southeast1.firebasedatabase.app"})
+ref_entry = db.reference("entry")
+ref_exit = db.reference("exit")
 
 @app.route('/')
 def index():

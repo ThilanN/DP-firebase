@@ -72,7 +72,6 @@ void loop() {
       } else {
         closeBarrier(i, "ENTRY");
       }
-
     } else {
       // Exit logic
       if (carDetected[i]) {
@@ -87,8 +86,8 @@ void loop() {
       }
     }
 
-    // Output in DATA format for Firebase integration
-    Serial.print("DATA,Slot");
+    // Output in DATA format with gate identifier
+    Serial.print("DATA,");
     Serial.print(i == 0 ? "Entry" : "Exit");
     Serial.print(",");
     Serial.print(distance[i]);

@@ -10,9 +10,15 @@
 </head>
 <body>
   <h1>Parking Status</h1>
-  <p>Distance: <span id="distance">0</span> cm</p>
-  <p>Motion: <span id="motion">No</span></p>
-  <p>Gate Open: <span id="gate">No</span> <span id="gate-color"></span></p>
+  <h2>Entry Gate</h2>
+  <p>Distance: <span id="entry-distance">0</span> cm</p>
+  <p>Motion: <span id="entry-motion">No</span></p>
+  <p>Gate Open: <span id="entry-gate">No</span> <span id="entry-color"></span></p>
+
+  <h2>Exit Gate</h2>
+  <p>Distance: <span id="exit-distance">0</span> cm</p>
+  <p>Motion: <span id="exit-motion">No</span></p>
+  <p>Gate Open: <span id="exit-gate">No</span> <span id="exit-color"></span></p>
 
   <script>
     let firebaseApp;
@@ -25,17 +31,29 @@
         firebaseApp = firebase.initializeApp(config);
         console.log("Firebase initialized:", firebaseApp.name);
         const db = firebase.database();
-        const ref = db.ref("parking");
+        const entryRef = db.ref("entry");
+        const exitRef = db.ref("exit");
 
-        ref.on("value", (snapshot) => {
-          console.log("Data snapshot:", snapshot.val()); // Debug log
+        entryRef.on("value", (snapshot) => {
+          console.log("Entry data:", snapshot.val()); // Debug log
           const data = snapshot.val() || {};
-          document.getElementById("distance").textContent = data.distance || 0;
-          document.getElementById("motion").textContent = data.motion ? "Yes" : "No";
-          document.getElementById("gate").textContent = data.gate_open ? "Yes" : "No";
-          document.getElementById("gate-color").className = data.gate_open ? "green" : "red";
+          document.getElementById("entry-distance").textContent = data.distance || 0;
+          document.getElementById("entry-motion").textContent = data.motion ? "Yes" : "No";
+          document.getElementById("entry-gate").textContent = data.gate_open ? "Yes" : "No";
+          document.getElementById("entry-color").className = data.gate_open ? "green" : "red";
         }, (error) => {
-          console.error("Listener error:", error); // Error callback
+          console.error("Entry listener error:", error);
+        });
+
+        exitRef.on("value", (snapshot) => {
+          console.log("Exit data:", snapshot.val()); // Debug log
+          const data = snapshot.val() || {};
+          document.getElementById("exit-distance").textContent = data.distance || 0;
+          document.getElementById("exit-motion").textContent = data.motion ? "Yes" : "No";
+          document.getElementById("exit-gate").textContent = data.gate_open ? "Yes" : "No";
+          document.getElementById("exit-color").className = data.gate_open ? "green" : "red";
+        }, (error) => {
+          console.error("Exit listener error:", error);
         });
       })
       .catch(error => console.error("Error loading config or initializing:", error));
