@@ -16,6 +16,9 @@ long duration[NUM_GATES];
 int distance[NUM_GATES];
 bool carDetected[NUM_GATES];
 Servo servos[NUM_GATES];
+bool gateOpen[NUM_GATES]; // Track gate state
+bool lastGateOpen[NUM_GATES] = {false, false}; 
+
 
 int availableSlots = MAX_PARKING_SLOTS;
 
@@ -27,8 +30,9 @@ void setup() {
     pinMode(PIR_PINS[i], INPUT);
     pinMode(LED_RED_PINS[i], OUTPUT);
     pinMode(LED_GREEN_PINS[i], OUTPUT);
-    digitalWrite(LED_RED_PINS[i], HIGH);    // Red ON (Barrier closed initially)
-    digitalWrite(LED_GREEN_PINS[i], LOW);   // Green OFF
+    digitalWrite(LED_RED_PINS[i], LOW);    // Red ON (Barrier closed initially)
+    digitalWrite(LED_GREEN_PINS[i], HIGH); // Green OFF
+    gateOpen[i] = false; // Initialize gates as closed
 
     ESP32PWM::allocateTimer(i);
     servos[i].setPeriodHertz(50);
@@ -56,33 +60,37 @@ void loop() {
 
     if (i == ENTRY_INDEX) {
       // Entry logic
-      if (carDetected[i]) {
+      if (carDetected[i] && !gateOpen[i]) {
         if (availableSlots > 0) {
+          gateOpen[i] = true;
+          lastGateOpen[i] = true; // <-- Log open state
           openBarrier(i, "ENTRY");
           availableSlots--;
           delay(3000); // Simulate entry time
           closeBarrier(i, "ENTRY");
+          gateOpen[i] = false; // Set gate as closed
         } else {
-          // Available slots == 0, so explicitly force red ON and green OFF
-          digitalWrite(LED_RED_PINS[i], HIGH);
-          digitalWrite(LED_GREEN_PINS[i], LOW);
-          servos[i].write(0); // Ensure barrier stays down
+          closeBarrier(i, "ENTRY");
           Serial.println("ENTRY: Car Detected but Parking Full - Access Denied");
         }
-      } else {
-        closeBarrier(i, "ENTRY");
+      } else if (!carDetected[i] && gateOpen[i]) {
+        closeBarrier(i, "ENTRY"); // Ensure gate closes if no car
+        gateOpen[i] = false;
       }
     } else {
       // Exit logic
-      if (carDetected[i]) {
+      if (carDetected[i] && !gateOpen[i]) {
         openBarrier(i, "EXIT");
         if (availableSlots < MAX_PARKING_SLOTS) {
           availableSlots++;
         }
+        gateOpen[i] = true; // Set gate as open
         delay(3000); // Simulate exit time
         closeBarrier(i, "EXIT");
-      } else {
-        closeBarrier(i, "EXIT");
+        gateOpen[i] = false; // Set gate as closed
+      } else if (!carDetected[i] && gateOpen[i]) {
+        closeBarrier(i, "EXIT"); // Ensure gate closes if no car
+        gateOpen[i] = false;
       }
     }
 
@@ -94,8 +102,9 @@ void loop() {
     Serial.print(",");
     Serial.print(motion);
     Serial.print(",");
-    Serial.print(!carDetected[i]); // Gate open when no car detected
+    Serial.print(lastGateOpen[i] ? 1 : 0); // Use gateOpen state for accuracy
     Serial.println();
+    lastGateOpen[i] = false;
 
     // Status for debugging
     Serial.print("GATE: ");
@@ -106,6 +115,8 @@ void loop() {
     Serial.print(motion);
     Serial.print(" | Detected: ");
     Serial.print(carDetected[i]);
+    Serial.print(" | Gate Open: ");
+    Serial.print(gateOpen[i]);
     Serial.print(" | Available Slots: ");
     Serial.println(availableSlots);
   }
@@ -113,19 +124,19 @@ void loop() {
   delay(5000); // Loop delay
 }
 
-// For Common Anode RGB LED
+// For Common Anode RGB LED (corrected logic for common anode)
 void openBarrier(int index, const char* gateName) {
   servos[index].write(90);  
-  digitalWrite(LED_RED_PINS[index], HIGH);    // OFF 
-  digitalWrite(LED_GREEN_PINS[index], LOW);   // ON
+  digitalWrite(LED_RED_PINS[index], HIGH);    // Red OFF
+  digitalWrite(LED_GREEN_PINS[index], LOW);   // Green ON
   Serial.print(gateName);
   Serial.println(" Barrier Opened");
 }
 
 void closeBarrier(int index, const char* gateName) {
   servos[index].write(0);
-  digitalWrite(LED_RED_PINS[index], LOW);     // ON
-  digitalWrite(LED_GREEN_PINS[index], HIGH);  // OFF
+  digitalWrite(LED_RED_PINS[index], LOW);     // Red ON
+  digitalWrite(LED_GREEN_PINS[index], HIGH);  // Green OFF
   Serial.print(gateName);
   Serial.println(" Barrier Closed");
 }

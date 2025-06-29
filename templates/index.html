@@ -1,24 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Parking Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .gate-card {
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .gate-card h2 {
+      color: #2980b9;
+      margin-top: 0;
+    }
+    p {
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    .value {
+      font-weight: bold;
+    }
     .red { color: red; }
     .green { color: green; }
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
   </style>
 </head>
 <body>
-  <h1>Parking Status</h1>
-  <h2>Entry Gate</h2>
-  <p>Distance: <span id="entry-distance">0</span> cm</p>
-  <p>Motion: <span id="entry-motion">No</span></p>
-  <p>Gate Open: <span id="entry-gate">No</span> <span id="entry-color"></span></p>
+  <h1>Smart Parking Dashboard</h1>
 
-  <h2>Exit Gate</h2>
-  <p>Distance: <span id="exit-distance">0</span> cm</p>
-  <p>Motion: <span id="exit-motion">No</span></p>
-  <p>Gate Open: <span id="exit-gate">No</span> <span id="exit-color"></span></p>
+  <div class="gate-card">
+    <h2>Entry Gate</h2>
+    <p>Distance: <span id="entry-distance" class="value">0</span> cm</p>
+    <p>Motion: <span id="entry-motion" class="value">No</span></p>
+    <p class="status">Gate Open: <span id="entry-gate">No</span> 
+      <span id="entry-details"></span> 
+      <span id="entry-color"></span>
+    </p>
+  </div>
+
+  <div class="gate-card">
+    <h2>Exit Gate</h2>
+    <p>Distance: <span id="exit-distance" class="value">0</span> cm</p>
+    <p>Motion: <span id="exit-motion" class="value">No</span></p>
+    <p class="status">Gate Open: <span id="exit-gate">No</span> 
+      <span id="exit-details"></span> 
+      <span id="exit-color"></span>
+    </p>
+  </div>
 
   <script>
     let firebaseApp;
@@ -40,6 +91,8 @@
           document.getElementById("entry-distance").textContent = data.distance || 0;
           document.getElementById("entry-motion").textContent = data.motion ? "Yes" : "No";
           document.getElementById("entry-gate").textContent = data.gate_open ? "Yes" : "No";
+          document.getElementById("entry-details").textContent = 
+            data.gate_open ? ` (Dist: ${data.distance || 0}cm, Motion: ${data.motion || 0}, Open: ${data.gate_open || 0})` : "";
           document.getElementById("entry-color").className = data.gate_open ? "green" : "red";
         }, (error) => {
           console.error("Entry listener error:", error);
@@ -51,6 +104,8 @@
           document.getElementById("exit-distance").textContent = data.distance || 0;
           document.getElementById("exit-motion").textContent = data.motion ? "Yes" : "No";
           document.getElementById("exit-gate").textContent = data.gate_open ? "Yes" : "No";
+          document.getElementById("exit-details").textContent = 
+            data.gate_open ? ` (Dist: ${data.distance || 0}cm, Motion: ${data.motion || 0}, Open: ${data.gate_open || 0})` : "";
           document.getElementById("exit-color").className = data.gate_open ? "green" : "red";
         }, (error) => {
           console.error("Exit listener error:", error);
