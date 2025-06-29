@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <style>
+    .red { color: red; }
+    .green { color: green; }
+  </style>
+</head>
+<body>
+  <h1>Parking Status</h1>
+  <p>Distance: <span id="distance">0</span> cm</p>
+  <p>Motion: <span id="motion">No</span></p>
+  <p>Gate Open: <span id="gate">No</span> <span id="gate-color"></span></p>
+
+  <script>
+    let firebaseApp;
+    fetch('firebase-config.json')
+      .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok ' + response.statusText);
+        return response.json();
+      })
+      .then(config => {
+        firebaseApp = firebase.initializeApp(config);
+        console.log("Firebase initialized:", firebaseApp.name);
+        const db = firebase.database();
+        const ref = db.ref("parking");
+
+        ref.on("value", (snapshot) => {
+          console.log("Data snapshot:", snapshot.val()); // Debug log
+          const data = snapshot.val() || {};
+          document.getElementById("distance").textContent = data.distance || 0;
+          document.getElementById("motion").textContent = data.motion ? "Yes" : "No";
+          document.getElementById("gate").textContent = data.gate_open ? "Yes" : "No";
+          document.getElementById("gate-color").className = data.gate_open ? "green" : "red";
+        }, (error) => {
+          console.error("Listener error:", error); // Error callback
+        });
+      })
+      .catch(error => console.error("Error loading config or initializing:", error));
+  </script>
+</body>
+</html>
