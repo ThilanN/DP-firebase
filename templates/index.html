@@ -6,66 +6,30 @@
   <title>Smart Parking Dashboard</title>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f9;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-      color: #2c3e50;
-    }
-    .gate-card {
-      background-color: white;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      margin-bottom: 20px;
-      max-width: 400px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .gate-card h2 {
-      color: #2980b9;
-      margin-top: 0;
-    }
-    p {
-      margin: 10px 0;
-      font-size: 16px;
-    }
-    .value {
-      font-weight: bold;
-    }
-    .red { color: red; }
-    .green { color: green; }
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <h1>Smart Parking Dashboard</h1>
+<body class="font-sans bg-gray-100 p-5 text-gray-800">
+  <h1 class="text-center text-4xl text-gray-800 mb-6 font-bold">Smart Parking Dashboard</h1>
 
-  <div class="gate-card">
-    <h2>Entry Gate</h2>
-    <p>Distance: <span id="entry-distance" class="value">0</span> cm</p>
-    <p>Motion: <span id="entry-motion" class="value">No</span></p>
-    <p class="status">Gate Open: <span id="entry-gate">No</span> 
+  <p class="text-center mt-4">
+    Exit Payment Status: <span id="payment-status" class="font-bold text-red-600">Not Paid</span>
+  </p>
+
+  <div class="gate-card bg-white rounded-lg shadow-md p-5 mb-5 max-w-md mx-auto">
+    <h2 class="text-xl text-blue-600 mb-2">Entry Gate</h2>
+    <p class="my-2 text-base">Distance: <span id="entry-distance" class="font-bold">0</span> cm</p>
+    <p class="my-2 text-base">Motion: <span id="entry-motion" class="font-bold">No</span></p>
+    <p class="flex items-center gap-2 my-2 text-base">Gate Open: <span id="entry-gate">No</span> 
       <span id="entry-details"></span> 
       <span id="entry-color"></span>
     </p>
   </div>
 
-  <div class="gate-card">
-    <h2>Exit Gate</h2>
-    <p>Distance: <span id="exit-distance" class="value">0</span> cm</p>
-    <p>Motion: <span id="exit-motion" class="value">No</span></p>
-    <p class="status">Gate Open: <span id="exit-gate">No</span> 
+  <div class="gate-card bg-white rounded-lg shadow-md p-5 mb-5 max-w-md mx-auto">
+    <h2 class="text-xl text-blue-600 mb-2">Exit Gate</h2>
+    <p class="my-2 text-base">Distance: <span id="exit-distance" class="font-bold">0</span> cm</p>
+    <p class="my-2 text-base">Motion: <span id="exit-motion" class="font-bold">No</span></p>
+    <p class="flex items-center gap-2 my-2 text-base">Gate Open: <span id="exit-gate">No</span> 
       <span id="exit-details"></span> 
       <span id="exit-color"></span>
     </p>
@@ -93,7 +57,7 @@
           document.getElementById("entry-gate").textContent = data.gate_open ? "Yes" : "No";
           document.getElementById("entry-details").textContent = 
             data.gate_open ? ` (Dist: ${data.distance || 0}cm, Motion: ${data.motion || 0}, Open: ${data.gate_open || 0})` : "";
-          document.getElementById("entry-color").className = data.gate_open ? "green" : "red";
+          document.getElementById("entry-color").className = data.gate_open ? "text-green-600" : "text-red-600";
         }, (error) => {
           console.error("Entry listener error:", error);
         });
@@ -106,9 +70,17 @@
           document.getElementById("exit-gate").textContent = data.gate_open ? "Yes" : "No";
           document.getElementById("exit-details").textContent = 
             data.gate_open ? ` (Dist: ${data.distance || 0}cm, Motion: ${data.motion || 0}, Open: ${data.gate_open || 0})` : "";
-          document.getElementById("exit-color").className = data.gate_open ? "green" : "red";
+          document.getElementById("exit-color").className = data.gate_open ? "text-green-600" : "text-red-600";
         }, (error) => {
           console.error("Exit listener error:", error);
+        });
+
+        const paymentRef = db.ref("paymentStatus/exit");
+        paymentRef.on("value", (snapshot) => {
+          const paid = snapshot.val();
+          const el = document.getElementById("payment-status");
+          el.textContent = paid ? "Paid" : "Not Paid";
+          el.className = paid ? "font-bold text-green-600" : "font-bold text-red-600";
         });
       })
       .catch(error => console.error("Error loading config or initializing:", error));

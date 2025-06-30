@@ -1,4 +1,6 @@
 #include <ESP32Servo.h>
+#include <WiFi.h>
+#include <HTTPClient.h>
 
 #define ENTRY_INDEX 0
 #define EXIT_INDEX 1
@@ -80,16 +82,23 @@ void loop() {
     } else {
       // Exit logic
       if (carDetected[i] && !gateOpen[i]) {
-        openBarrier(i, "EXIT");
-        if (availableSlots < MAX_PARKING_SLOTS) {
-          availableSlots++;
-        }
-        gateOpen[i] = true; // Set gate as open
-        delay(3000); // Simulate exit time
-        closeBarrier(i, "EXIT");
-        gateOpen[i] = false; // Set gate as closed
-      } else if (!carDetected[i] && gateOpen[i]) {
-        closeBarrier(i, "EXIT"); // Ensure gate closes if no car
+        if (getExitPaymentStatus()) { 
+          openBarrier(i, "EXIT");
+          lastGateOpen[i] = true;
+          if (availableSlots < MAX_PARKING_SLOTS) {
+            availableSlots++;
+          }
+          gateOpen[i] = true; // Set gate as open
+          delay(3000); // Simulate exit time
+          closeBarrier(i, "EXIT");
+          gateOpen[i] = false; // Set gate as closed
+          resetExitPaymentStatus();
+        } else {
+          closeBarrier(i, "EXIT");
+          Serial.println("EXIT: Payment not completed - Access Denied");
+          } 
+      }else if (!carDetected[i] && gateOpen[i]) {
+        closeBarrier(i, "EXIT"); // gate closes if no car
         gateOpen[i] = false;
       }
     }
@@ -139,4 +148,13 @@ void closeBarrier(int index, const char* gateName) {
   digitalWrite(LED_GREEN_PINS[index], HIGH);  // Green OFF
   Serial.print(gateName);
   Serial.println(" Barrier Closed");
+}
+
+
+bool getExitPaymentStatus() {
+  return true;  // Change this to false to simulate not paid
+}
+
+void resetExitPaymentStatus() {
+  Serial.println("EXIT payment status reset to false (mock)");
 }

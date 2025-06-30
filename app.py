@@ -4,7 +4,7 @@ from firebase_admin import credentials, db
 
 app = Flask(__name__)
 
-# Initialize Firebase for server-side
+# Firebase for server-side
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred, {"databaseURL": "https://smart-parking-system-5376-default-rtdb.asia-southeast1.firebasedatabase.app"})
 ref_entry = db.reference("entry")
@@ -13,6 +13,11 @@ ref_exit = db.reference("exit")
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/payment')
+def get_payment_status():
+    status = db.reference("paymentStatus/exit").get()
+    return {"paid": bool(status)}
 
 @app.route('/firebase-config.json')
 def serve_config():
